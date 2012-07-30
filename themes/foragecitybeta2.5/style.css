@@ -555,6 +555,8 @@ div.box-o-goods, div.box-to-claim {
 /*	margin:2px 0 4px 0;*/
 	margin:0;
 	padding:2px 0 0 0;
+	font-size:0.7em;
+	line-height:2em;
 }
 
 div.line-above {
@@ -1102,7 +1104,7 @@ form#your-profile {
 div#logout {
 	position: absolute;
 	right: 4px;
-	z-index:1000;
+	z-index:9999999;
 }
 
 div#logout a, div#logout a:active, div#logout a:visited, div#logout a:hover {
@@ -1221,7 +1223,7 @@ div#top-left-background {
 }
 div#bottom-right-background {
 	background-position:right bottom;
-	background-image:url(img/l/summer/tree.png);
+	/*	background-image:url(img/l/summer/tree.png); */
 	opacity:0;
 	-webkit-transition: opacity 0.125s linear 0.2s;
 	top:auto;bottom:0;
@@ -1236,6 +1238,20 @@ div#top-repeat-background {
 	background-repeat:repeat-x;
 	background-position:right top;
 	background-image:url(img/l/summer/clouds.png);
+}
+
+
+a.launch{
+	display:block;
+	z-index: 100;
+	text-align: center;
+	margin:auto;
+	color:#fff;
+	width: 200px;
+	background-color: #EFA613;
+	padding: 6px;
+	border-radius: 6px;
+	border: 2px solid white;
 }
 
 /*styles for 800px and up!*/

@@ -59,7 +59,7 @@ function beta_name($name){
 
 if ($mobile_browser == 0) {
 	get_header('trim');
-	$desktop_notice = get_page_by_path("desktop");
+	$desktop_notice = get_page_by_path("intro");
 	$content = '<h1 style="text-align: center;">Welcome to Forage City!</h1>
 <p>Our app invites users to share bounties of fresh, free food with others in their local communities-whether it\'s fruits, vegetables, or other delicious leftovers from backyards, markets, food trucks, CSA boxes, or farm lands. The app was created by a team of teenagers at Oakland\'s Peabody Award-winning Youth Radio in partnership with pro designers and developers.
 <p>We\'re currently in closed beta.</p>';
@@ -86,8 +86,8 @@ if ($mobile_browser == 0) {
 			echo '<p>&nbsp;</p><form action="" method="post"><input type="text" style="background:white;" name="betaemail" size="20" value="EMAIL ADDRESS" /> <input type="submit" value="submit" name="submit" /></form>';
 		}
 	}else{
-		echo '<p>&nbsp;</p><p>Please share your email address if you\'d like to participate. </p>';
-		echo '<p>&nbsp;</p><form action="" method="post"><input type="text" style="background:white;" name="betaemail" size="20" value="EMAIL ADDRESS" /> <input type="submit" value="submit" name="submit" /></form>';
+		//echo '<p>&nbsp;</p><p>Please share your email address if you\'d like to participate. </p>';
+		//echo '<p>&nbsp;</p><form action="" method="post"><input type="text" style="background:white;" name="betaemail" size="20" value="EMAIL ADDRESS" /> <input type="submit" value="submit" name="submit" /></form>';
 	}
 	?>
 	</div></div></div>

@@ -251,9 +251,15 @@ function zd_adminmenu_init(){
 			}
 		}
 	}
+	// Add link to admin panel for editing the Info page.
 	$info_page = get_page_by_path("info");
 	$info = "post.php?post=".$info_page->ID."&action=edit";
-	add_menu_page( "FC Info", "FC Info", "edit_pages", $info, "", $icon_url, 6 );
+	add_menu_page( "FC Info", "FC Info", "edit_pages", $info, "", $icon_url, 7 );
+	
+	// Add link to admin panel for editing the Intro page.
+	$intro_page = get_page_by_path("intro");
+	$intro = "post.php?post=".$intro_page->ID."&action=edit";
+	add_menu_page( "FC Intro", "FC Intro", "edit_pages", $intro, "", $icon_url, 6 );
 
 	$page_title = "Organization Users";
 	$menu_title = "Organization Users";
@@ -854,7 +860,7 @@ function remove_lostpassword_text ( $text ) {
 	}
 	// Take out this if statement to allow registering
 	if ($text == 'Register') {
-		$text = '';
+		$text = 'Register';
 		if(isset($_GET['action']) && $_GET['action'] == "register")
 			 $text = 'Register';
 	}

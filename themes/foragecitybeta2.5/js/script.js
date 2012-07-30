@@ -49,32 +49,34 @@ var myScroll,fixScroll,tm=false,top_btn=false,back1,back2,back=0,keyTO,debug,deb
 		else
 			jQuery("#show_more").remove();
 	},
-	loadLocationAndReverse=function(elt){
-		geoLoc = false;
-		if(navigator.geolocation) {
-			navigator.geolocation.getCurrentPosition(function(position) {
-				geoLoc = position.coords;
-				if(elt) {
-					var eltp = elt.parent(),
-						geocoder = new google.maps.Geocoder(),
-						latlng = new google.maps.LatLng(position.coords.latitude,position.coords.longitude);
-					elt.val("current location");
-					eltp.children("span").addClass("explanation-hidden");
-					eltp.append("<input type='hidden' name='latitude' value='"+position.coords.latitude+"' />");
-					eltp.append("<input type='hidden' name='longitude' value='"+position.coords.longitude+"' />");
-					geocoder.geocode({'latLng': latlng}, function(results, status) {
-						if (status == google.maps.GeocoderStatus.OK) {
-							if (results[0]) {
-								elt.val(results[0].formatted_address);
-							}
-						}
-					});
-				}
-			}, function() {});
-			return true;
-		}
-		return false;
-	},
+    loadLocationAndReverse=function(elt){
+        geoLoc = false;
+        if(navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                geoLoc = position.coords;
+                if(elt) {
+                    var eltp = elt.parent(),
+                        geocoder = new google.maps.Geocoder(),
+                        latlng = new google.maps.LatLng(position.coords.latitude,position.coords.longitude),
+                        dupe=eltp.append("<input type='hidden' name='geoloc' value='current location' />");
+                    elt.val("current location");
+                    eltp.children("span").addClass("explanation-hidden");
+                    eltp.append("<input type='hidden' name='latitude' value='"+position.coords.latitude+"' />");
+                    eltp.append("<input type='hidden' name='longitude' value='"+position.coords.longitude+"' />");
+                    geocoder.geocode({'latLng': latlng}, function(results, status) {
+                        if (status == google.maps.GeocoderStatus.OK) {
+                            if (results[0]) {
+                                elt.val(results[0].formatted_address);
+                                dupe.val(results[0].formatted_address);
+                            }
+                        }
+                    });
+                }
+            }, function() {});
+            return true;
+        }
+        return false;
+    },
 	loadLocation=function(callback, failureCallback){
 		if(geoLoc){
 			if(callback) callback(geoLoc);
@@ -146,7 +148,8 @@ var myScroll,fixScroll,tm=false,top_btn=false,back1,back2,back=0,keyTO,debug,deb
 	get_wp_data = function(type, input, tries){
 		if(tries == undefined) tries = 0;
 		backHelper=function(){};
-		input.timestamp=(new Date).getTime();
+		lastTimestampSent = (new Date).getTime();
+		input.timestamp = lastTimestampSent;
 		debug_input = input;
 		lastgn = input.good_name;
 		jQuery("body").addClass("loading-ajax");
@@ -173,6 +176,7 @@ var myScroll,fixScroll,tm=false,top_btn=false,back1,back2,back=0,keyTO,debug,deb
 				}
 			},
 			success: function(data, status, xhr){
+				if(input.timestamp >= lastTimestampSent){
 				if(jQuery(data).find("redirect").text() != "")
 					window.location = jQuery(data).find("redirect").text();
 				fixFooter();
@@ -207,7 +211,10 @@ var myScroll,fixScroll,tm=false,top_btn=false,back1,back2,back=0,keyTO,debug,deb
 					counter = 0,
 					listpage = 0,
 					i = 0,
-					form, button, msgs, gu,
+					pageInfoDivHTML = "",
+					// pageInfoDiv, pageDescription,
+					saveSubmenu, saveSearchForm,
+					form, button, msgs, gu, mh = "150",
 					newHTML, newBoxHTML, pic,
 					zoom, center, lat, lng,
 					instr, desc, affl, lourl, xtras,
@@ -271,7 +278,10 @@ var myScroll,fixScroll,tm=false,top_btn=false,back1,back2,back=0,keyTO,debug,deb
 									slong = -122.2824592;
 								}
 								contentDiv.append("<div id='mapdiv'></div>");
-								jQuery("div#mapdiv").css("height", (jQuery(window).height() - 185) + "px");
+								if(iOS)
+									jQuery("#mapdiv").css("height",(jQuery("#scroll-wrapper").height()-40)+"px");
+								else
+									jQuery("div#mapdiv").css("height", (jQuery(window).height() - 185) + "px");
 								if(sll) center = sll;
 								else center = new google.maps.LatLng(slat,slong);
 								if(zm) zoom = zm;
@@ -281,6 +291,7 @@ var myScroll,fixScroll,tm=false,top_btn=false,back1,back2,back=0,keyTO,debug,deb
 									center: center,
 									mapTypeId: google.maps.MapTypeId.ROADMAP
 								});
+								setTimeout("google.maps.event.trigger(map, 'resize');", 100);
 								zm = false;
 								sll = false;
 								scrollOff = true;
@@ -327,10 +338,13 @@ var myScroll,fixScroll,tm=false,top_btn=false,back1,back2,back=0,keyTO,debug,deb
 							} else {
 								// no boxes or goods matched
 								if(input.sort_by == "wishlist"){
-									if(d.find("no_wishlist").text() == "true")
+									if(d.find("no_wishlist").text() == "true"){
 										contentDiv.append("<p class='notice'>There’s nothing on your wishlist right now. You can add a good to your wishlist to make it easier to find the next time someone shares that item.</p>");
-									else if(d.find("empty_wishlist").text() == "true")
+										contentDiv.append('<p>&nbsp;</p><p>View <a href="'+hu+'/find/nearby/"><span>Nearby</span></a> items.</p>');
+									}else if(d.find("empty_wishlist").text() == "true"){
 										contentDiv.append("<p class='notice'>Nobody's sharing anything on your wishlist right now. Check out what people have shared recently or nearby instead.</p>");
+										contentDiv.append('<p>&nbsp;</p><p>View <a href="'+hu+'/find/nearby/"><span>Nearby</span></a> items.</p>');
+									}
 								}
 							}
 						} else {
@@ -599,11 +613,18 @@ var myScroll,fixScroll,tm=false,top_btn=false,back1,back2,back=0,keyTO,debug,deb
 						newHTML += '<hr><div id="what-to-do"><p>Write this number on your container of goods, then press share so that they can be publicly listed.</p><p id="box-number">'+bn+'</p><form action="'+hu+'/give/" method="post">';
 						extras.each(function(){
 							xtra = jQuery(this).find("name").text();
-							newHTML += '<p><input style="display:inline;width:auto;margin:4px;" type="checkbox" name="'+xtra+'" value="yes" />'+jQuery(this).find("label").text()+'</p>';
+							newHTML += '<p><input style="display:inline;width:auto;margin:4px;" type="checkbox" name="'+xtra+'"  value="yes" />'+jQuery(this).find("label").text()+'</p>';
 						});
+						var matchFBTW = newHTML.search(/post_to_facebook|post_to_twitter/g);
+						if(matchFBTW == -1)
+							newHTML += '<p>&nbsp;</p><p>Food tastes better when it\'s shared! Link Forage City to your Facebook and Twitter feeds on your <a href="http://foragecity.com/profile/">Profile Settings page.';
+							newHTML += '</a>';
+							newHTML += '</p>';
+
 						newHTML += '<input type="hidden" name="box_post" value="'+bp+'" /><input type="hidden" name="action" value="finalize" /><p><input id="share_it" type="submit" value="Share It" /></p></form></div></div>';
 						back2 = {contentHTML: contentDiv.html(), submenu: false, bar: false};
 						contentDiv.html(newHTML);
+						nfb = jQuery("#post_to_facebook");
 					}
 
 
@@ -709,6 +730,7 @@ var myScroll,fixScroll,tm=false,top_btn=false,back1,back2,back=0,keyTO,debug,deb
 						// console.log(input);
 						back1 = {contentHTML: contentDiv.html(), submenu: false, bar: false, rightbtn: jQuery(".top-right-button").clone().wrap('<div></div>').parent().html(), leftbtn: jQuery(".top-left-button").clone().wrap('<div></div>').parent().html()};
 						addBackButton();
+						mh="150";
 						jQuery(".top-right-button").add(".top-left-button").remove();
 						bn = box.find("box_number").text();
 						gn = box.find("good_name").text();
@@ -835,7 +857,8 @@ var myScroll,fixScroll,tm=false,top_btn=false,back1,back2,back=0,keyTO,debug,deb
 				// TELL ISCROLL WHAT'S WHAT
 				if(err.length == 0)
 					showStuff();
-				scrollOff = false;
+				if(!showMap) scrollOff = false;
+			}
 			}
 		});
 	},
@@ -969,7 +992,7 @@ var myScroll,fixScroll,tm=false,top_btn=false,back1,back2,back=0,keyTO,debug,deb
 					em = "1.25em";
 					if(qv == "" || typeof qv == "undefined")
 						errMsg = "Quantity is required.";
-					if(lav == "" || lov == "" || typeof lav == "undefined" || typeof lov == "undefined") {
+					if(lav == "" || lov == "" || typeof lav == "undefined" || typeof lov == "undefined" || lv != form.find("select[name=geoloc]").val()) {
 						lav = "";
 						lov = "";
 					}
@@ -1254,7 +1277,7 @@ var myScroll,fixScroll,tm=false,top_btn=false,back1,back2,back=0,keyTO,debug,deb
 			if(!jQuery(this).is(".current") || !jQuery("body").is(".with-submenu-and-bar")) {
 				data = {action: "fc_load_find", subaction: "get_list", clean_slate: "true"};
 				if(sortby == undefined)
-					data.sort_by = "wishlist";
+					data.sort_by = "recent";
 				else
 					data.sort_by = sortby;
 				get_wp_data_with_loc('GET', data);
@@ -1305,7 +1328,9 @@ var myScroll,fixScroll,tm=false,top_btn=false,back1,back2,back=0,keyTO,debug,deb
 		jQuery("body").delegate("#give_button", "click touchend", showGive);
 
 		jQuery("#nav-menu a[title=find]").bind(clte, showFind);
-		jQuery("body").delegate("#wishlist_button", "click touchend", showFind);
+		jQuery("body").delegate("#wishlist_button", "click touchend", function(e){
+			showFind(e, "wishlist");
+		});
 		jQuery("body").delegate("#recent_button", "click touchend", function(e){
 			showFind(e, "recent");
 		});

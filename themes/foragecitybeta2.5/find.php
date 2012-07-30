@@ -96,7 +96,7 @@ if($action == "finalize") {
 
 $map_disabled = false;
 if($action == 'list'){
-	$DEFAULT_SORT = 'wishlist';
+	$DEFAULT_SORT = 'recent';
 	$goup = home_url()."/find/";
 	global $wp_query;
 	$sort_by = $DEFAULT_SORT;
