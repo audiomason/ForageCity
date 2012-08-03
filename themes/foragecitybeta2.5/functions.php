@@ -260,6 +260,10 @@ function zd_adminmenu_init(){
 	$intro_page = get_page_by_path("intro");
 	$intro = "post.php?post=".$intro_page->ID."&action=edit";
 	add_menu_page( "FC Intro", "FC Intro", "edit_pages", $intro, "", $icon_url, 6 );
+	
+	// Add link to admin panel for editing fcboxes
+	$boxes = "edit.php?post_type=fcboxes";
+	add_menu_page( "Boxes", "Boxes", "edit_posts", $boxes, "", $icon_url, 8 );
 
 	$page_title = "Organization Users";
 	$menu_title = "Organization Users";
@@ -826,9 +830,10 @@ if ( !wp_next_scheduled( 'my_hourly_event' ) ) {
 
 /**
  * Release all unfinalized reservations that are at least 24 hours old.
+ * Release boxes that are 48 hrs old.
  */
 function do_this_hourly() {
-	// do something every hour
+	// release reservations
 	$yesterday = time() - 24*60*60;
 	$foraged = get_posts(array("post_type" => "fcreservations", 'numberposts' => -1, 'post_status' => 'draft', 'orderby' => 'post_date', 'order' => 'ASC'));
 	reset($foraged);
@@ -838,6 +843,16 @@ function do_this_hourly() {
 		// should probably notify user ($rp->post_author)
 		// of the reservation expiration...
 		$rp = next($foraged);
+	}
+	// release boxes
+	$two_days_ago = time() - 48*60*60;
+	$boxes = get_posts(array("post_type" => "fcboxes", 'numberposts' => -1, 'post_status' => 'published', 'orderby' => 'post_date', 'order' => 'ASC'));
+	reset($boxes);
+	$rp = current($boxes);
+	while($rp && strtotime($rp->post_date) < $two_days_ago){
+		$rp->post_status = 'draft';
+		wp_update_post($rp);
+		$rp = next($boxes);
 	}
 }
 add_action('my_hourly_event', 'do_this_hourly');
@@ -2336,7 +2351,7 @@ function create_box_post_ajax($box_number, $instructions, $quantity, $location, 
 		// 'ID' => '12',
 		'post_title' => $box_number,
 		'post_content' => '',
-		'post_status' => 'draft', 
+		'post_status' => 'published', 
 		'post_type' => 'fcboxes',
 		'post_excerpt' => $instructions
 	), true);
